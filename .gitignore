@@ -1,0 +1,4 @@
+.env.example
+database.sqlite
+/node_modules
+.qoder

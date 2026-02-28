@@ -1,0 +1,14 @@
+{
+  "name": "code-ni-mark",
+  "version": "1.0.0",
+  "description": "A code sharing website by Mark",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.6.0",
+    "express": "^4.22.1"
+  },
+  "type": "module"
+}

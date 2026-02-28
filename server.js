@@ -1,0 +1,210 @@
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const crypto = require('crypto');
+
+// Import libSQL client
+const { createClient } = require('@libsql/client');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Turso Database Configuration
+const TURSO_DB_URL = process.env.TURSO_DB_URL || 'libsql://your-database.turso.io';
+const TURSO_DB_AUTH_TOKEN = process.env.TURSO_DB_AUTH_TOKEN || 'your-auth-token';
+
+// Create libSQL client
+const client = createClient({
+  url: TURSO_DB_URL,
+  authToken: TURSO_DB_AUTH_TOKEN
+});
+
+// Admin Authentication Setup
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'mark123'; // Default admin password
+const validTokens = new Set();
+
+const requireAuth = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized: Admin access required.' });
+    }
+    const token = authHeader.split(' ')[1];
+    if (!validTokens.has(token)) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid or expired token.' });
+    }
+    next();
+};
+
+// Middleware
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Ensure public directory exists
+if (!fs.existsSync(path.join(__dirname, 'public'))) {
+    fs.mkdirSync(path.join(__dirname, 'public'));
+}
+
+// Initialize Database Tables
+async function initDatabase() {
+    try {
+        // Create Projects Table
+        await client.execute(`
+            CREATE TABLE IF NOT EXISTS projects (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT UNIQUE NOT NULL
+            )
+        `);
+        
+        // Create Files Table
+        await client.execute(`
+            CREATE TABLE IF NOT EXISTS files (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id INTEGER,
+                filename TEXT NOT NULL,
+                content TEXT,
+                FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+            )
+        `);
+        
+        console.log("Connected to the Turso SQLite database.");
+    } catch (err) {
+        console.error("Error initializing database: " + err.message);
+    }
+}
+
+initDatabase();
+
+// --- API ROUTES ---
+
+// Admin Login
+app.post('/api/login', (req, res) => {
+    const { password } = req.body;
+    if (password === ADMIN_PASSWORD) {
+        const token = crypto.randomBytes(32).toString('hex');
+        validTokens.add(token);
+        res.json({ token });
+    } else {
+        res.status(401).json({ error: 'Invalid password' });
+    }
+});
+
+// Get all projects
+app.get('/api/projects', async (req, res) => {
+    try {
+        const result = await client.execute("SELECT * FROM projects ORDER BY id DESC");
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Create a new project
+app.post('/api/projects', requireAuth, async (req, res) => {
+    const { name } = req.body;
+    if (!name) return res.status(400).json({ error: "Project name is required" });
+    
+    try {
+        const result = await client.execute({
+            sql: "INSERT INTO projects (name) VALUES (?)",
+            args: [name]
+        });
+        res.json({ id: result.lastInsertId, name });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Get files for a specific project
+app.get('/api/projects/:id/files', async (req, res) => {
+    try {
+        const result = await client.execute({
+            sql: "SELECT id, filename FROM files WHERE project_id = ? ORDER BY id ASC",
+            args: [req.params.id]
+        });
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get a specific file's content
+app.get('/api/files/:id', async (req, res) => {
+    try {
+        const result = await client.execute({
+            sql: "SELECT * FROM files WHERE id = ?",
+            args: [req.params.id]
+        });
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "File not found" });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Create a new file in a project
+app.post('/api/projects/:id/files', requireAuth, async (req, res) => {
+    const { filename, content } = req.body;
+    const projectId = req.params.id;
+    
+    if (!filename) return res.status(400).json({ error: "Filename is required" });
+    
+    try {
+        const result = await client.execute({
+            sql: "INSERT INTO files (project_id, filename, content) VALUES (?, ?, ?)",
+            args: [projectId, filename, content || '']
+        });
+        res.json({ id: result.lastInsertId, project_id: projectId, filename, content });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Update a file
+app.put('/api/files/:id', requireAuth, async (req, res) => {
+    const { content } = req.body;
+    
+    try {
+        await client.execute({
+            sql: "UPDATE files SET content = ? WHERE id = ?",
+            args: [content, req.params.id]
+        });
+        res.json({ message: "File updated successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete a project
+app.delete('/api/projects/:id', requireAuth, async (req, res) => {
+    try {
+        await client.execute({
+            sql: "DELETE FROM projects WHERE id = ?",
+            args: [req.params.id]
+        });
+        res.json({ message: "Project deleted" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete a file
+app.delete('/api/files/:id', requireAuth, async (req, res) => {
+    try {
+        await client.execute({
+            sql: "DELETE FROM files WHERE id = ?",
+            args: [req.params.id]
+        });
+        res.json({ message: "File deleted" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Start the server
+app.listen(PORT, () => {
+    console.log(`CODE ni MARK is running! Navigate to http://localhost:${PORT}`);
+});
+
+module.exports = app;
