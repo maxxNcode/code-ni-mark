@@ -10,8 +10,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Turso Database Configuration
-const TURSO_DB_URL = process.env.TURSO_DB_URL;
-const TURSO_DB_AUTH_TOKEN = process.env.TURSO_DB_AUTH_TOKEN;
+const TURSO_DB_URL = process.env.TURSO_DB_URL || '[REDACTED_DB_URL]';
+const TURSO_DB_AUTH_TOKEN = process.env.TURSO_DB_AUTH_TOKEN || '[REDACTED]';
 
 // Log for debugging (remove in production)
 console.log('TURSO_DB_URL:', TURSO_DB_URL ? 'set' : 'NOT SET');
