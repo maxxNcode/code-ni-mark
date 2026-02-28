@@ -20,7 +20,7 @@ const client = createClient({
 });
 
 // Admin Authentication Setup
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'mark123'; // Default admin password
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD; //admin password
 const validTokens = new Set();
 
 const requireAuth = (req, res, next) => {
