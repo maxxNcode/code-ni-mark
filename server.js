@@ -20,10 +20,10 @@ console.log('TURSO_DB_AUTH_TOKEN:', TURSO_DB_AUTH_TOKEN ? 'set' : 'NOT SET');
 // Create libSQL client - only if credentials are available
 let client = null;
 if (TURSO_DB_URL && TURSO_DB_AUTH_TOKEN) {
-  client = createClient({
-    url: TURSO_DB_URL,
-    authToken: TURSO_DB_AUTH_TOKEN
-  });
+    client = createClient({
+        url: TURSO_DB_URL,
+        authToken: TURSO_DB_AUTH_TOKEN
+    });
 }
 
 // Admin Authentication Setup
@@ -46,10 +46,7 @@ const requireAuth = (req, res, next) => {
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Ensure public directory exists
-if (!fs.existsSync(path.join(__dirname, 'public'))) {
-    fs.mkdirSync(path.join(__dirname, 'public'));
-}
+// Note: Do not create directories here — Vercel filesystem is read-only at runtime
 
 // Initialize Database Tables
 async function initDatabase() {
@@ -57,7 +54,7 @@ async function initDatabase() {
         console.error("Database client not initialized. Please check environment variables.");
         return;
     }
-    
+
     try {
         // Create Projects Table
         await client.execute(`
@@ -66,7 +63,7 @@ async function initDatabase() {
                 name TEXT UNIQUE NOT NULL
             )
         `);
-        
+
         // Create Files Table
         await client.execute(`
             CREATE TABLE IF NOT EXISTS files (
@@ -77,7 +74,7 @@ async function initDatabase() {
                 FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
             )
         `);
-        
+
         console.log("Connected to the Turso SQLite database.");
     } catch (err) {
         console.error("Error initializing database: " + err.message);
@@ -103,7 +100,7 @@ app.post('/api/login', (req, res) => {
 // Get all projects
 app.get('/api/projects', async (req, res) => {
     if (!client) return res.status(503).json({ error: 'Database not configured' });
-    
+
     try {
         const result = await client.execute("SELECT * FROM projects ORDER BY id DESC");
         res.json(result.rows);
@@ -115,10 +112,10 @@ app.get('/api/projects', async (req, res) => {
 // Create a new project
 app.post('/api/projects', requireAuth, async (req, res) => {
     if (!client) return res.status(503).json({ error: 'Database not configured' });
-    
+
     const { name } = req.body;
     if (!name) return res.status(400).json({ error: "Project name is required" });
-    
+
     try {
         const result = await client.execute({
             sql: "INSERT INTO projects (name) VALUES (?)",
@@ -133,7 +130,7 @@ app.post('/api/projects', requireAuth, async (req, res) => {
 // Get files for a specific project
 app.get('/api/projects/:id/files', async (req, res) => {
     if (!client) return res.status(503).json({ error: 'Database not configured' });
-    
+
     try {
         const result = await client.execute({
             sql: "SELECT id, filename FROM files WHERE project_id = ? ORDER BY id ASC",
@@ -148,7 +145,7 @@ app.get('/api/projects/:id/files', async (req, res) => {
 // Get a specific file's content
 app.get('/api/files/:id', async (req, res) => {
     if (!client) return res.status(503).json({ error: 'Database not configured' });
-    
+
     try {
         const result = await client.execute({
             sql: "SELECT * FROM files WHERE id = ?",
@@ -166,12 +163,12 @@ app.get('/api/files/:id', async (req, res) => {
 // Create a new file in a project
 app.post('/api/projects/:id/files', requireAuth, async (req, res) => {
     if (!client) return res.status(503).json({ error: 'Database not configured' });
-    
+
     const { filename, content } = req.body;
     const projectId = req.params.id;
-    
+
     if (!filename) return res.status(400).json({ error: "Filename is required" });
-    
+
     try {
         const result = await client.execute({
             sql: "INSERT INTO files (project_id, filename, content) VALUES (?, ?, ?)",
@@ -186,9 +183,9 @@ app.post('/api/projects/:id/files', requireAuth, async (req, res) => {
 // Update a file
 app.put('/api/files/:id', requireAuth, async (req, res) => {
     if (!client) return res.status(503).json({ error: 'Database not configured' });
-    
+
     const { content } = req.body;
-    
+
     try {
         await client.execute({
             sql: "UPDATE files SET content = ? WHERE id = ?",
@@ -203,7 +200,7 @@ app.put('/api/files/:id', requireAuth, async (req, res) => {
 // Delete a project
 app.delete('/api/projects/:id', requireAuth, async (req, res) => {
     if (!client) return res.status(503).json({ error: 'Database not configured' });
-    
+
     try {
         await client.execute({
             sql: "DELETE FROM projects WHERE id = ?",
@@ -218,7 +215,7 @@ app.delete('/api/projects/:id', requireAuth, async (req, res) => {
 // Delete a file
 app.delete('/api/files/:id', requireAuth, async (req, res) => {
     if (!client) return res.status(503).json({ error: 'Database not configured' });
-    
+
     try {
         await client.execute({
             sql: "DELETE FROM files WHERE id = ?",
@@ -230,9 +227,11 @@ app.delete('/api/files/:id', requireAuth, async (req, res) => {
     }
 });
 
-// Start the server
-app.listen(PORT, () => {
-    console.log(`CODE ni MARK is running! Navigate to http://localhost:${PORT}`);
-});
+// Start the server (local dev only — not used by Vercel serverless)
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`CODE ni MARK is running! Navigate to http://localhost:${PORT}`);
+    });
+}
 
 module.exports = app;
