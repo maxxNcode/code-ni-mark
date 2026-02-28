@@ -644,6 +644,7 @@
 
         // --- Project Logic ---
         let allProjects = [];
+        let fileCache = {};
 
         async function loadProjects() {
             try {
@@ -715,6 +716,7 @@
 
             currentProjectId = id;
             currentFileId = null;
+            fileCache = {}; // Clear file cache when switching projects
             elCurrentProjectTitle.innerHTML = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg> ${escapeHTML(name)}`;
             elBtnToggleFiles.classList.remove('hidden');
 
@@ -893,7 +895,6 @@
             // On mobile, hide the sidebars when a file is selected
             if (window.innerWidth < 768) {
                 if (isFilesVisible) toggleFiles();
-                if (isProjectsVisible) toggleProjects();
             }
 
             const btnDeleteFile = document.getElementById('btn-delete-file');
@@ -905,22 +906,48 @@
                 elBtnEditToggle.classList.add('hidden');
             }
 
-            await loadFiles();
+            // Visually highlight active file without fetching entire tree
+            highlightSidebarFile(id);
 
             try {
-                const fileData = await api(`/files/${id}`);
+                let content = '';
 
-                elCodeEditor.value = fileData.content || '';
+                // Fetch from cache if available, else API
+                if (fileCache[id] !== undefined) {
+                    content = fileCache[id];
+                } else {
+                    const fileData = await api(`/files/${id}`);
+                    content = fileData.content || '';
+                    fileCache[id] = content; // Store in cache
+                }
+
+                elCodeEditor.value = content;
 
                 // Set language class correctly for Highlight.js refresh
                 const ext = filename.split('.').pop();
                 elCodeViewer.className = `h-full block p-6 text-[13px] leading-relaxed font-mono selection:bg-emerald-500/30 language-${ext}`;
-                elCodeViewer.textContent = fileData.content || '';
+                elCodeViewer.textContent = content;
                 hljs.highlightElement(elCodeViewer);
 
                 // Default to view mode
                 if (isEditing) toggleEditMode();
             } catch (e) { }
+        }
+
+        function highlightSidebarFile(activeId) {
+            const buttons = elFilesList.querySelectorAll('button');
+            buttons.forEach(btn => {
+                // reset styling
+                btn.classList.remove('bg-slate-800/80', 'text-emerald-300', 'border-slate-700/50', 'shadow-sm');
+                btn.classList.add('text-slate-300', 'hover:bg-slate-800/40', 'hover:text-slate-200');
+            });
+
+            // Re-apply active state logic when the user clicks a file button again
+            const activeBtn = Array.from(buttons).find(b => b.onclick && b.onclick.toString().includes(`selectFile(${activeId}`));
+            if (activeBtn) {
+                activeBtn.classList.add('bg-slate-800/80', 'text-emerald-300', 'border-slate-700/50', 'shadow-sm');
+                activeBtn.classList.remove('text-slate-300', 'hover:bg-slate-800/40', 'hover:text-slate-200');
+            }
         }
 
         async function saveFile() {
@@ -933,6 +960,7 @@
             try {
                 await api(`/files/${currentFileId}`, 'PUT', { content: newContent });
 
+                fileCache[currentFileId] = newContent; // Update cache
                 elCodeViewer.textContent = newContent;
                 hljs.highlightElement(elCodeViewer);
 
