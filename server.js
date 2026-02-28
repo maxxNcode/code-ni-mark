@@ -26,17 +26,25 @@ if (TURSO_DB_URL && TURSO_DB_AUTH_TOKEN) {
     });
 }
 
-// Admin Authentication Setup
+// Admin Authentication Setup (Stateless for Serverless)
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD; //admin password
-const validTokens = new Set();
+
+// Generate a static signature based on the password and a secret string
+function getAdminToken() {
+    if (!ADMIN_PASSWORD) return null;
+    return crypto.createHmac('sha256', ADMIN_PASSWORD).update('admin-session-v1').digest('hex');
+}
 
 const requireAuth = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Unauthorized: Admin access required.' });
     }
+
     const token = authHeader.split(' ')[1];
-    if (!validTokens.has(token)) {
+    const expectedToken = getAdminToken();
+
+    if (!expectedToken || token !== expectedToken) {
         return res.status(401).json({ error: 'Unauthorized: Invalid or expired token.' });
     }
     next();
@@ -88,10 +96,12 @@ initDatabase();
 // Admin Login
 app.post('/api/login', (req, res) => {
     const { password } = req.body;
+    if (!ADMIN_PASSWORD) {
+        return res.status(500).json({ error: 'ADMIN_PASSWORD is not set on the server' });
+    }
+
     if (password === ADMIN_PASSWORD) {
-        const token = crypto.randomBytes(32).toString('hex');
-        validTokens.add(token);
-        res.json({ token });
+        res.json({ token: getAdminToken() });
     } else {
         res.status(401).json({ error: 'Invalid password' });
     }
