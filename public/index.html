@@ -162,201 +162,213 @@
     <div
         class="flex flex-1 overflow-hidden relative z-10 w-full max-w-screen-2xl mx-auto border-x border-slate-800/30 line-height-tight">
 
-        <!-- Mobile Overlay -->
-        <div id="mobile-overlay"
-            class="md:hidden fixed inset-0 bg-black/50 z-40 hidden transition-opacity duration-300 opacity-0"
-            onclick="closeAllSidebars()"></div>
+        <!-- Dashboard View -->
+        <div id="dashboard-view"
+            class="flex-1 overflow-y-auto bg-[#0a0a0f] relative w-full h-full p-6 md:p-10 mb-[60px] pb-24">
+            <div class="max-w-6xl mx-auto w-full flex flex-col h-full animate-slide-up">
 
-        <!-- Projects Column -->
-        <div id="projects-column"
-            class="absolute md:relative z-50 md:z-10 w-0 md:w-64 opacity-0 md:opacity-100 overflow-hidden shrink-0 glass-panel md:border-r border-slate-800/60 flex flex-col shadow-2xl md:shadow-xl transition-all duration-300 h-full bg-[#0a0a0f] md:bg-transparent">
-            <div class="p-5 border-b border-slate-800/60 backdrop-blur-sm">
-                <h2 class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <svg class="w-4 h-4 text-emerald-500/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                        </path>
-                    </svg>
-                    Projects
-                </h2>
-                <form id="form-new-project" class="flex flex-col hidden admin-only group">
-                    <div class="flex gap-2">
-                        <input type="text" id="input-project-name" placeholder="New Project..."
-                            class="w-full bg-slate-900/50 text-sm px-3 py-2 rounded-md border border-slate-700/50 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 text-slate-200 placeholder-slate-600 transition-all font-medium"
-                            required>
-                        <button type="submit"
-                            class="btn-hover bg-slate-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-slate-400 aspect-square px-3 rounded-md text-sm border border-slate-700/50 hover:border-emerald-500/30 flex items-center justify-center">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 mt-4">
+                    <div>
+                        <h1
+                            class="text-3xl font-bold tracking-tight mb-2 text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-200">
+                            Projects</h1>
+                        <p class="text-slate-400 text-sm">Select a laboratory to begin coding.</p>
+                    </div>
+                    <div class="flex gap-3 w-full md:w-auto">
+                        <div class="relative flex-1 md:w-72">
+                            <svg class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <input type="text" id="input-search-projects" placeholder="Search projects..."
+                                class="w-full bg-slate-900/80 text-sm pl-10 pr-4 py-2.5 rounded-xl border border-slate-700/50 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 text-slate-200 placeholder-slate-500 transition-all font-medium shadow-inner">
+                        </div>
+                        <button onclick="promptCreateProject()" id="btn-dashboard-new-project"
+                            class="btn-hover bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold shadow-[0_4px_20px_rgba(16,185,129,0.25)] transition-all shrink-0 admin-only hidden">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
                                     d="M12 4v16m8-8H4"></path>
                             </svg>
+                            New Project
                         </button>
                     </div>
-                    <input type="password" id="input-project-passcode" placeholder="Set Deletion Passcode"
-                        class="w-full bg-slate-900/50 text-xs px-3 py-1.5 rounded-md border border-slate-700/50 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 text-slate-400 placeholder-slate-600 transition-all mt-2"
-                        required>
-                </form>
-            </div>
-            <div class="flex-1 overflow-y-auto p-3 space-y-1" id="projects-list">
-                <!-- Projects injected here via JS -->
-            </div>
-        </div>
-
-        <!-- Files Column -->
-        <div id="files-column"
-            class="absolute md:relative z-40 md:z-10 w-0 opacity-0 overflow-hidden shrink-0 bg-slate-900/95 border-none md:border-r border-slate-800/60 flex flex-col shadow-2xl transition-all duration-300 h-full">
-            <div class="p-5 border-b border-slate-800/60 flex justify-between items-center bg-slate-800/20">
-                <h2 class="text-sm font-semibold text-slate-200 truncate flex items-center gap-2"
-                    id="current-project-title">
-                    <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path>
-                    </svg>
-                    Files
-                </h2>
-                <button onclick="deleteCurrentProject()"
-                    class="btn-hover text-slate-500 hover:text-red-400 hover:bg-red-400/10 p-1.5 rounded-md transition-colors hidden admin-only"
-                    id="btn-delete-project" title="Delete Project">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                        </path>
-                    </svg>
-                </button>
-            </div>
-            <div class="p-3 border-b border-slate-800/60 hidden admin-only bg-slate-800/10" id="container-new-file">
-                <form id="form-new-file" class="flex gap-2">
-                    <input type="text" id="input-file-name" placeholder="folder/filename.js"
-                        class="w-full bg-slate-950/50 text-sm px-3 py-2 rounded-md border border-slate-700/50 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 text-slate-200 placeholder-slate-600 transition-all font-mono"
-                        required>
-                    <button type="submit"
-                        class="btn-hover bg-slate-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-slate-400 aspect-square px-3 rounded-md text-sm border border-slate-700/50 hover:border-emerald-500/30 flex items-center justify-center">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                            </path>
-                        </svg>
-                    </button>
-                </form>
-            </div>
-            <div class="flex-1 overflow-y-auto p-3 space-y-1" id="files-list">
-            </div>
-        </div>
-
-        <!-- Editor/Viewer Area -->
-        <div class="flex-1 bg-[#1e1e24] flex flex-col hidden relative shadow-[-10px_0_30px_rgba(0,0,0,0.2)]"
-            id="editor-area">
-
-            <!-- Editor Toolbar -->
-            <div class="h-14 bg-[#18181d] border-b border-slate-800/80 flex items-center justify-between px-2 md:px-5">
-                <div class="flex items-center gap-2 md:gap-3">
-                    <button id="btn-toggle-projects" onclick="toggleProjects()"
-                        class="btn-hover text-slate-400 hover:text-emerald-400 p-1.5 rounded-md hover:bg-slate-800 transition-colors"
-                        title="Toggle Projects">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h7"></path>
-                        </svg>
-                    </button>
-                    <button id="btn-toggle-files" onclick="toggleFiles()"
-                        class="btn-hover text-slate-400 hover:text-emerald-400 p-1.5 rounded-md hover:bg-slate-800 transition-colors hidden"
-                        title="Toggle Files">
-                        <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
-                        </svg>
-                    </button>
-                    <div class="hidden md:flex gap-1.5 opacity-50 mx-2">
-                        <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
-                        <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                        <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
-                    </div>
-                    <svg class="w-4 h-4 text-emerald-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                        </path>
-                    </svg>
-                    <span id="current-file-name" class="font-mono text-sm text-slate-300"></span>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="copyCode()"
-                        class="btn-hover px-3 py-1.5 text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white rounded-md transition-colors flex items-center gap-1.5 border border-slate-700"
-                        title="Copy to clipboard">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
-                            </path>
+
+                <div id="dashboard-projects-grid"
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+                    <!-- Projects injected here via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Editor View -->
+        <div id="editor-view" class="hidden flex flex-1 overflow-hidden w-full relative">
+
+            <!-- Mobile Overlay -->
+            <div id="mobile-overlay"
+                class="md:hidden fixed inset-0 bg-black/50 z-40 hidden transition-opacity duration-300 opacity-0"
+                onclick="closeAllSidebars()"></div>
+
+            <!-- Files Column -->
+            <div id="files-column"
+                class="absolute md:relative z-40 md:z-10 w-0 opacity-0 overflow-hidden shrink-0 bg-slate-900/95 border-none md:border-r border-slate-800/60 flex flex-col shadow-2xl transition-all duration-300 h-full">
+                <div class="p-5 border-b border-slate-800/60 flex justify-between items-center bg-slate-800/20">
+                    <h2 class="text-sm font-semibold text-slate-200 truncate flex items-center gap-2"
+                        id="current-project-title">
+                        <svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path>
                         </svg>
-                        Copy
-                    </button>
-                    <button onclick="deleteCurrentFile()"
-                        class="btn-hover p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors hidden admin-only"
-                        id="btn-delete-file" title="Delete File">
+                        Files
+                    </h2>
+                    <button onclick="deleteCurrentProject()"
+                        class="btn-hover text-slate-500 hover:text-red-400 hover:bg-red-400/10 p-1.5 rounded-md transition-colors hidden admin-only"
+                        id="btn-delete-project" title="Delete Project">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
                             </path>
                         </svg>
                     </button>
-                    <div class="w-px h-4 bg-slate-700 mx-1 hidden admin-only self-center"></div>
-                    <button id="btn-edit-toggle" onclick="toggleEditMode()"
-                        class="btn-hover px-4 py-1.5 text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 rounded-md transition-all hidden admin-only flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                            </path>
-                        </svg>
-                        Edit
-                    </button>
-                    <button id="btn-save" onclick="saveFile()"
-                        class="btn-hover px-4 py-1.5 text-xs font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-md transition-all hidden shadow-[0_0_15px_rgba(16,185,129,0.3)] admin-only flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4">
-                            </path>
-                        </svg>
-                        Save
-                    </button>
+                </div>
+                <div class="p-3 border-b border-slate-800/60 hidden admin-only bg-slate-800/10" id="container-new-file">
+                    <form id="form-new-file" class="flex gap-2">
+                        <input type="text" id="input-file-name" placeholder="folder/filename.js"
+                            class="w-full bg-slate-950/50 text-sm px-3 py-2 rounded-md border border-slate-700/50 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 text-slate-200 placeholder-slate-600 transition-all font-mono"
+                            required>
+                        <button type="submit"
+                            class="btn-hover bg-slate-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-slate-400 aspect-square px-3 rounded-md text-sm border border-slate-700/50 hover:border-emerald-500/30 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4">
+                                </path>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+                <div class="flex-1 overflow-y-auto p-3 space-y-1" id="files-list">
                 </div>
             </div>
 
-            <!-- Viewing Area -->
-            <div id="view-mode" class="flex-1 overflow-auto relative bg-[#1e1e24]">
-                <pre
-                    class="m-0 h-full"><code id="code-viewer" class="h-full block p-6 text-[13px] leading-relaxed font-mono selection:bg-emerald-500/30"></code></pre>
-            </div>
+            <!-- Editor/Viewer Area -->
+            <div class="flex-1 bg-[#1e1e24] flex flex-col hidden relative shadow-[-10px_0_30px_rgba(0,0,0,0.2)]"
+                id="editor-area">
 
-            <!-- Editing Area -->
-            <div id="edit-mode" class="flex-1 relative hidden">
-                <textarea id="code-editor"
-                    class="w-full h-full bg-[#1e1e24] text-[#abb2bf] p-6 text-[13px] leading-relaxed font-mono focus:outline-none resize-none selection:bg-emerald-500/30"
-                    spellcheck="false"></textarea>
-            </div>
-        </div>
-
-        <!-- Empty State -->
-        <div id="empty-state"
-            class="flex-1 flex items-center justify-center flex-col text-slate-500 relative overflow-hidden">
-            <!-- Decorative background elements -->
-            <div
-                class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LCAyNTUsIDI1NSwgMC4wNCkiLz48L3N2Zz4=')] opacity-50">
-            </div>
-            <div
-                class="absolute top-1/2 left-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2">
-            </div>
-
-            <div class="relative z-10 flex flex-col items-center animate-slide-up text-center px-8">
+                <!-- Editor Toolbar -->
                 <div
-                    class="w-20 h-20 mb-6 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 shadow-2xl flex items-center justify-center text-emerald-500/50">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                    </svg>
+                    class="h-14 bg-[#18181d] border-b border-slate-800/80 flex items-center justify-between px-2 md:px-5">
+                    <div class="flex items-center gap-2 md:gap-3">
+                        <button id="btn-back-dashboard" onclick="showDashboard()"
+                            class="btn-hover text-slate-400 hover:text-emerald-400 p-1.5 rounded-md hover:bg-slate-800 transition-colors"
+                            title="Back to Dashboard">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                        </button>
+                        <button id="btn-toggle-files" onclick="toggleFiles()"
+                            class="btn-hover text-slate-400 hover:text-emerald-400 p-1.5 rounded-md hover:bg-slate-800 transition-colors hidden"
+                            title="Toggle Files">
+                            <svg class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z">
+                                </path>
+                            </svg>
+                        </button>
+                        <div class="hidden md:flex gap-1.5 opacity-50 mx-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                            <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+                        </div>
+                        <svg class="w-4 h-4 text-emerald-400/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                        <span id="current-file-name" class="font-mono text-sm text-slate-300"></span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="copyCode()"
+                            class="btn-hover px-3 py-1.5 text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white rounded-md transition-colors flex items-center gap-1.5 border border-slate-700"
+                            title="Copy to clipboard">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
+                                </path>
+                            </svg>
+                            Copy
+                        </button>
+                        <button onclick="deleteCurrentFile()"
+                            class="btn-hover p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-md transition-colors hidden admin-only"
+                            id="btn-delete-file" title="Delete File">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                </path>
+                            </svg>
+                        </button>
+                        <div class="w-px h-4 bg-slate-700 mx-1 hidden admin-only self-center"></div>
+                        <button id="btn-edit-toggle" onclick="toggleEditMode()"
+                            class="btn-hover px-4 py-1.5 text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 rounded-md transition-all hidden admin-only flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                </path>
+                            </svg>
+                            Edit
+                        </button>
+                        <button id="btn-save" onclick="saveFile()"
+                            class="btn-hover px-4 py-1.5 text-xs font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white rounded-md transition-all hidden shadow-[0_0_15px_rgba(16,185,129,0.3)] admin-only flex items-center gap-1.5">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4">
+                                </path>
+                            </svg>
+                            Save
+                        </button>
+                    </div>
                 </div>
-                <h2 class="text-2xl font-bold mb-3 text-slate-200 tracking-tight">Welcome to CODE ni MARK</h2>
-                <p class="text-slate-400 max-w-md mx-auto leading-relaxed">Select a project from the sidebar to
-                    start
-                    browsing the code laboratory.</p>
+
+                <!-- Viewing Area -->
+                <div id="view-mode" class="flex-1 overflow-auto relative bg-[#1e1e24]">
+                    <pre
+                        class="m-0 h-full"><code id="code-viewer" class="h-full block p-6 text-[13px] leading-relaxed font-mono selection:bg-emerald-500/30"></code></pre>
+                </div>
+
+                <!-- Editing Area -->
+                <div id="edit-mode" class="flex-1 relative hidden">
+                    <textarea id="code-editor"
+                        class="w-full h-full bg-[#1e1e24] text-[#abb2bf] p-6 text-[13px] leading-relaxed font-mono focus:outline-none resize-none selection:bg-emerald-500/30"
+                        spellcheck="false"></textarea>
+                </div>
             </div>
-        </div>
+
+            <!-- Empty State -->
+            <div id="empty-state"
+                class="flex-1 flex items-center justify-center flex-col text-slate-500 relative overflow-hidden">
+                <!-- Decorative background elements -->
+                <div
+                    class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LCAyNTUsIDI1NSwgMC4wNCkiLz48L3N2Zz4=')] opacity-50">
+                </div>
+                <div
+                    class="absolute top-1/2 left-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2">
+                </div>
+
+                <div class="relative z-10 flex flex-col items-center animate-slide-up text-center px-8">
+                    <div
+                        class="w-20 h-20 mb-6 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 shadow-2xl flex items-center justify-center text-emerald-500/50">
+                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-3 text-slate-200 tracking-tight">Welcome to CODE ni MARK</h2>
+                    <p class="text-slate-400 max-w-md mx-auto leading-relaxed">Select a project from the sidebar to
+                        start
+                        browsing the code laboratory.</p>
+                </div>
+            </div>
+        </div> <!-- End Editor View -->
     </div>
 
     <!-- Toast Notification Container -->
@@ -405,10 +417,7 @@
 
         // Elements
         const elMobileOverlay = document.getElementById('mobile-overlay');
-        const elProjectsColumn = document.getElementById('projects-column');
-        const elBtnToggleProjects = document.getElementById('btn-toggle-projects');
         const elBtnToggleFiles = document.getElementById('btn-toggle-files');
-        const elProjectsList = document.getElementById('projects-list');
         const elFilesList = document.getElementById('files-list');
         const elFilesColumn = document.getElementById('files-column');
         const elEditorArea = document.getElementById('editor-area');
@@ -456,11 +465,10 @@
         }
 
         // --- Layout Logic ---
-        let isProjectsVisible = window.innerWidth >= 768;
         let isFilesVisible = false;
 
         function updateMobileOverlay() {
-            if (window.innerWidth < 768 && (isProjectsVisible || isFilesVisible)) {
+            if (window.innerWidth < 768 && isFilesVisible) {
                 elMobileOverlay.classList.remove('hidden');
                 setTimeout(() => elMobileOverlay.classList.remove('opacity-0'), 10);
             } else {
@@ -471,23 +479,17 @@
 
         function closeAllSidebars() {
             if (window.innerWidth < 768) {
-                if (isProjectsVisible) toggleProjects();
                 if (isFilesVisible) toggleFiles();
             }
         }
 
-        function toggleProjects() {
-            isProjectsVisible = !isProjectsVisible;
-            if (isProjectsVisible) {
-                elProjectsColumn.classList.remove('w-0', 'md:w-0', 'opacity-0');
-                elProjectsColumn.classList.add('w-64', 'md:w-64', 'opacity-100');
-                elBtnToggleProjects.classList.add('text-emerald-400', 'bg-slate-800');
-            } else {
-                elProjectsColumn.classList.add('w-0', 'md:w-0', 'opacity-0');
-                elProjectsColumn.classList.remove('w-64', 'md:w-64', 'opacity-100');
-                elBtnToggleProjects.classList.remove('text-emerald-400', 'bg-slate-800');
-            }
-            updateMobileOverlay();
+        function showDashboard() {
+            document.getElementById('editor-view').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            if (window.innerWidth < 768 && isFilesVisible) toggleFiles();
+            currentProjectId = null;
+            document.getElementById('input-search-projects').value = '';
+            renderProjects(allProjects);
         }
 
         function toggleFiles() {
@@ -505,9 +507,6 @@
         }
 
         window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768 && !isProjectsVisible) {
-                toggleProjects();
-            }
         });
 
         // --- Auth Logic ---
@@ -521,7 +520,7 @@
                 adminElements.forEach(el => el.classList.add('hidden'));
 
                 // Hide specific flex forms safely
-                document.getElementById('form-new-project').classList.add('hidden');
+                document.getElementById('btn-dashboard-new-project').classList.add('hidden');
                 document.getElementById('container-new-file').classList.add('hidden');
 
                 elBtnShowLogin.classList.remove('hidden');
@@ -644,55 +643,83 @@
         }
 
         // --- Project Logic ---
+        let allProjects = [];
+
         async function loadProjects() {
             try {
-                const projects = await api('/projects');
-                elProjectsList.innerHTML = '';
-                projects.forEach(p => {
-                    const btn = document.createElement('button');
-                    const isActive = currentProjectId === p.id;
-                    btn.className = `w-full text-left px-3 py-2.5 rounded-lg text-sm mb-1 list-item-enter btn-hover font-medium flex items-center gap-2 border border-transparent ${isActive
-                        ? 'bg-slate-800 text-emerald-400 border-slate-700/50 shadow-sm'
-                        : 'text-slate-300 hover:bg-slate-800/50 hover:border-slate-700/30'
-                        }`;
-                    btn.innerHTML = `
-                        <svg class="w-4 h-4 ${isActive ? 'text-emerald-500' : 'text-slate-500'}" fill="${isActive ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg> 
-                        <span class="truncate">${escapeHTML(p.name)}</span>
-                    `;
-                    btn.onclick = () => selectProject(p.id, p.name);
-                    elProjectsList.appendChild(btn);
-                });
+                allProjects = await api('/projects');
+                renderProjects(allProjects);
             } catch (e) {
                 // handle silently or redirect
             }
         }
 
-        document.getElementById('form-new-project').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const inputName = document.getElementById('input-project-name');
-            const inputPasscode = document.getElementById('input-project-passcode');
-            try {
-                const newProject = await api('/projects', 'POST', {
-                    name: inputName.value,
-                    passcode: inputPasscode.value || null
-                });
-                inputName.value = '';
-                inputPasscode.value = '';
-                await loadProjects();
-                selectProject(newProject.id, newProject.name);
-                showToast("Project created");
-            } catch (e) { }
+        function renderProjects(projectsArray) {
+            const grid = document.getElementById('dashboard-projects-grid');
+            grid.innerHTML = '';
+
+            if (projectsArray.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-20 text-slate-500">No projects found. Create one to get started!</div>`;
+                return;
+            }
+
+            projectsArray.forEach(p => {
+                const card = document.createElement('div');
+                card.className = "group relative bg-slate-800/20 hover:bg-slate-800/40 border border-slate-700/50 hover:border-emerald-500/50 rounded-2xl p-6 transition-all duration-300 cursor-pointer animate-slide-up shadow-lg hover:shadow-emerald-500/10 flex flex-col justify-between h-40";
+                card.onclick = () => selectProject(p.id, p.name);
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h3 class="font-bold text-slate-200 text-lg truncate group-hover:text-emerald-300 transition-colors">${escapeHTML(p.name)}</h3>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('input-search-projects').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allProjects.filter(p => p.name.toLowerCase().includes(term));
+            renderProjects(filtered);
         });
 
+        async function promptCreateProject() {
+            const name = prompt("Enter a name for the new project:");
+            if (!name || name.trim() === '') return;
+
+            const passcode = prompt("Security Check: Please set a secret deletion passcode to protect this project:");
+            if (!passcode || passcode.trim() === '') {
+                showToast("Project creation cancelled. A passcode is required.", "error");
+                return;
+            }
+
+            try {
+                const newProject = await api('/projects', 'POST', {
+                    name: name.trim(),
+                    passcode: passcode.trim()
+                });
+                await loadProjects();
+                selectProject(newProject.id, newProject.name);
+                showToast("Project created successfully", "success");
+            } catch (e) { }
+        }
+
         async function selectProject(id, name) {
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('editor-view').classList.remove('hidden');
+
             currentProjectId = id;
             currentFileId = null;
             elCurrentProjectTitle.innerHTML = `<svg class="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg> ${escapeHTML(name)}`;
             elBtnToggleFiles.classList.remove('hidden');
 
-            // Show files panel, hide projects if on mobile
+            // Start files open automatically
             if (!isFilesVisible) toggleFiles();
-            if (window.innerWidth < 768 && isProjectsVisible) toggleProjects();
 
             const btnDeleteProj = document.getElementById('btn-delete-project');
             if (isAdmin) btnDeleteProj.classList.remove('hidden');
@@ -711,10 +738,7 @@
                     const data = passcode ? { passcode } : {};
                     await api(`/projects/${currentProjectId}`, 'DELETE', data);
                     currentProjectId = null;
-                    if (isFilesVisible) toggleFiles();
-                    elBtnToggleFiles.classList.add('hidden');
-                    elEditorArea.classList.add('hidden');
-                    elEmptyState.classList.remove('hidden');
+                    showDashboard();
                     showToast("Project deleted");
                     await loadProjects();
                 } catch (e) {
