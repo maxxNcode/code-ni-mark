@@ -131,7 +131,7 @@ app.post('/api/projects', requireAuth, async (req, res) => {
             sql: "INSERT INTO projects (name) VALUES (?)",
             args: [name]
         });
-        res.json({ id: result.lastInsertId, name });
+        res.json({ id: Number(result.lastInsertRowid), name });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -184,7 +184,7 @@ app.post('/api/projects/:id/files', requireAuth, async (req, res) => {
             sql: "INSERT INTO files (project_id, filename, content) VALUES (?, ?, ?)",
             args: [projectId, filename, content || '']
         });
-        res.json({ id: result.lastInsertId, project_id: projectId, filename, content });
+        res.json({ id: Number(result.lastInsertRowid), project_id: projectId, filename, content });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
