@@ -997,7 +997,7 @@
             try {
                 const newFile = await api(`/projects/${currentProjectId}/files`, 'POST', {
                     filename: input.value,
-                    content: '// Write your code here...'
+                    content: '// Empty file...'
                 });
                 input.value = '';
                 await loadFiles();
