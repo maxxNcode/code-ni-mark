@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
@@ -90,6 +91,17 @@ async function initDatabase() {
         } catch (e) {
             // Column likely already exists
         }
+
+        // Create Folders Table for empty folders
+        await client.execute(`
+            CREATE TABLE IF NOT EXISTS folders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id INTEGER,
+                path TEXT NOT NULL,
+                FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE,
+                UNIQUE(project_id, path)
+            )
+        `);
 
         console.log("Connected to the Turso SQLite database.");
     } catch (err) {
@@ -196,6 +208,63 @@ app.post('/api/projects/:id/files', requireAuth, async (req, res) => {
         res.json({ id: Number(result.lastInsertRowid), project_id: projectId, filename, content });
     } catch (err) {
         res.status(400).json({ error: err.message });
+    }
+});
+
+// Get folders for a project
+app.get('/api/projects/:id/folders', async (req, res) => {
+    if (!client) return res.status(503).json({ error: 'Database not configured' });
+
+    try {
+        const result = await client.execute({
+            sql: "SELECT * FROM folders WHERE project_id = ? ORDER BY path ASC",
+            args: [req.params.id]
+        });
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Create a new folder in a project
+app.post('/api/projects/:id/folders', requireAuth, async (req, res) => {
+    if (!client) return res.status(503).json({ error: 'Database not configured' });
+
+    const { path: folderPath } = req.body;
+    const projectId = req.params.id;
+
+    if (!folderPath) return res.status(400).json({ error: "Folder path is required" });
+
+    // Normalize path - remove trailing slash for consistency
+    const normalizedPath = folderPath.replace(/\/$/, '');
+
+    try {
+        const result = await client.execute({
+            sql: "INSERT INTO folders (project_id, path) VALUES (?, ?)",
+            args: [projectId, normalizedPath]
+        });
+        res.json({ id: Number(result.lastInsertRowid), project_id: projectId, path: normalizedPath });
+    } catch (err) {
+        if (err.message.includes('UNIQUE constraint failed')) {
+            res.status(400).json({ error: "Folder already exists" });
+        } else {
+            res.status(400).json({ error: err.message });
+        }
+    }
+});
+
+// Delete a folder
+app.delete('/api/folders/:id', requireAuth, async (req, res) => {
+    if (!client) return res.status(503).json({ error: 'Database not configured' });
+
+    try {
+        await client.execute({
+            sql: "DELETE FROM folders WHERE id = ?",
+            args: [req.params.id]
+        });
+        res.json({ message: "Folder deleted" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 

@@ -268,7 +268,7 @@
 
             <!-- Files Column -->
             <div id="files-column"
-                class="absolute md:relative z-50 md:z-10 w-0 opacity-0 overflow-hidden shrink-0 bg-slate-900/98 md:bg-slate-900/95 border-none md:border-r border-slate-800/60 flex flex-col transition-all duration-300 h-full">
+                class="absolute md:relative z-[60] md:z-10 w-0 opacity-0 overflow-hidden shrink-0 bg-slate-900/98 md:bg-slate-900/95 border-none md:border-r border-slate-800/60 flex flex-col transition-all duration-300 h-full shadow-2xl md:shadow-none">
                 <div
                     class="h-14 p-4 border-b border-slate-800/60 flex justify-between items-center bg-slate-800/20 shrink-0">
                     <h2 class="text-sm font-bold text-slate-200 truncate flex items-center gap-2"
@@ -278,15 +278,28 @@
                         </svg>
                         Files
                     </h2>
-                    <button onclick="deleteCurrentProject()"
-                        class="btn-hover text-slate-500 hover:text-red-400 hover:bg-red-400/10 p-1.5 rounded-md transition-colors hidden admin-only"
-                        id="btn-delete-project" title="Delete Project">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                            </path>
-                        </svg>
-                    </button>
+                    <div class="flex items-center gap-1.5 hidden admin-only">
+                        <button onclick="promptNewFolder()"
+                            class="btn-hover text-slate-500 hover:text-emerald-400 hover:bg-emerald-400/10 p-1.5 rounded-md transition-colors"
+                            id="btn-new-folder" title="New Folder">
+                            <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z">
+                                </path>
+                            </svg>
+                        </button>
+                        <button onclick="deleteCurrentProject()"
+                            class="btn-hover text-slate-500 hover:text-red-400 hover:bg-red-400/10 p-1.5 rounded-md transition-colors"
+                            id="btn-delete-project" title="Delete Project">
+                            <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
                 <div class="p-3 border-b border-slate-800/60 hidden admin-only bg-slate-800/10" id="container-new-file">
                     <form id="form-new-file" class="flex gap-2">
@@ -307,12 +320,11 @@
                 </div>
             </div>
 
-            <!-- Editor/Viewer Area -->
-            <div class="flex-1 bg-[#1e1e24] flex flex-col hidden relative" id="editor-area">
-
-                <!-- Editor Toolbar -->
+            <!-- Content Area (Toolbar + Editor/Empty State) -->
+            <div class="flex-1 flex flex-col min-w-0 relative h-full">
+                <!-- Editor Toolbar (Always Visible) -->
                 <div
-                    class="h-14 bg-[#18181d] border-b border-slate-800/80 flex items-center justify-between px-3 md:px-5 shrink-0">
+                    class="h-14 bg-[#18181d] border-b border-slate-800/80 flex items-center justify-between px-3 md:px-5 shrink-0 z-10 w-full">
                     <div class="flex items-center gap-2 md:gap-3 overflow-hidden">
                         <button id="btn-back-dashboard" onclick="showDashboard()"
                             class="btn-hover text-slate-400 hover:text-emerald-400 p-2 rounded-md hover:bg-slate-800 transition-colors shrink-0"
@@ -336,7 +348,7 @@
                             <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/80"></div>
                             <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
                         </div>
-                        <div class="flex items-center gap-2 min-w-0">
+                        <div id="file-indicator" class="flex items-center gap-2 min-w-0 hidden">
                             <svg class="w-4 h-4 text-emerald-400/70 shrink-0" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -347,7 +359,7 @@
                                 class="font-mono text-xs md:text-sm text-slate-300 truncate"></span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-1.5 md:gap-2 shrink-0">
+                    <div id="file-actions" class="flex items-center gap-1.5 md:gap-2 shrink-0 hidden">
                         <button onclick="copyCode()"
                             class="btn-hover p-2 md:px-3 md:py-1.5 text-xs font-semibold bg-slate-800 text-slate-300 hover:text-white rounded-md transition-colors flex items-center gap-1.5 border border-slate-700"
                             title="Copy to clipboard">
@@ -389,43 +401,46 @@
                     </div>
                 </div>
 
-                <!-- Viewing Area -->
-                <div id="view-mode" class="flex-1 overflow-auto relative bg-[#1e1e24] w-full min-w-0">
-                    <pre
-                        class="m-0 h-full w-full overflow-auto"><code id="code-viewer" class="h-full block p-6 text-[13px] leading-relaxed font-mono selection:bg-emerald-500/30"></code></pre>
-                </div>
-
-                <!-- Editing Area -->
-                <div id="edit-mode" class="flex-1 relative hidden w-full min-w-0">
-                    <textarea id="code-editor"
-                        class="w-full h-full bg-[#1e1e24] text-[#abb2bf] p-6 text-[13px] leading-relaxed font-mono focus:outline-none resize-none selection:bg-emerald-500/30 overflow-auto"
-                        spellcheck="false" wrap="off"></textarea>
-                </div>
-            </div>
-
-            <!-- Empty State -->
-            <div id="empty-state"
-                class="flex-1 flex items-center justify-center flex-col text-slate-500 relative overflow-hidden">
-                <!-- Decorative background elements -->
-                <div
-                    class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LCAyNTUsIDI1NSwgMC4wNCkiLz48L3N2Zz4=')] opacity-50">
-                </div>
-                <div
-                    class="absolute top-1/2 left-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2">
-                </div>
-
-                <div class="relative z-10 flex flex-col items-center animate-slide-up text-center px-8">
-                    <div
-                        class="w-20 h-20 mb-6 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 shadow-2xl flex items-center justify-center text-emerald-500/50">
-                        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                        </svg>
+                <!-- Editor Area (Hidden by default) -->
+                <div class="flex-1 bg-[#1e1e24] flex flex-col hidden relative" id="editor-area">
+                    <!-- Viewing Area -->
+                    <div id="view-mode" class="flex-1 overflow-auto relative bg-[#1e1e24] w-full min-w-0">
+                        <pre
+                            class="m-0 h-full w-full overflow-auto"><code id="code-viewer" class="h-full block p-6 text-[13px] leading-relaxed font-mono selection:bg-emerald-500/30"></code></pre>
                     </div>
-                    <h2 class="text-2xl font-bold mb-3 text-slate-200 tracking-tight">Welcome to CODE ni MARK</h2>
-                    <p class="text-slate-400 max-w-md mx-auto leading-relaxed">Select a project from the sidebar to
-                        start
-                        browsing the code laboratory.</p>
+
+                    <!-- Editing Area -->
+                    <div id="edit-mode" class="flex-1 relative hidden w-full min-w-0">
+                        <textarea id="code-editor"
+                            class="w-full h-full bg-[#1e1e24] text-[#abb2bf] p-6 text-[13px] leading-relaxed font-mono focus:outline-none resize-none selection:bg-emerald-500/30 overflow-auto"
+                            spellcheck="false" wrap="off"></textarea>
+                    </div>
+                </div>
+
+                <!-- Empty State (Shown by default) -->
+                <div id="empty-state"
+                    class="flex-1 flex items-center justify-center flex-col text-slate-500 relative overflow-hidden">
+                    <!-- Decorative background elements -->
+                    <div
+                        class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LCAyNTUsIDI1NSwgMC4wNCkiLz48L3N2Zz4=')] opacity-50">
+                    </div>
+                    <div
+                        class="absolute top-1/2 left-1/2 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2">
+                    </div>
+
+                    <div class="relative z-10 flex flex-col items-center animate-slide-up text-center px-8">
+                        <div
+                            class="w-20 h-20 mb-6 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/50 shadow-2xl flex items-center justify-center text-emerald-500/50">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                    d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-bold mb-3 text-slate-200 tracking-tight">Welcome to CODE ni MARK</h2>
+                        <p class="text-slate-400 max-w-md mx-auto leading-relaxed">Select a project from the sidebar to
+                            start
+                            browsing the code laboratory.</p>
+                    </div>
                 </div>
             </div>
         </div> <!-- End Editor View -->
@@ -493,6 +508,7 @@
         const elLoginModal = document.getElementById('login-modal');
         const elBtnShowLogin = document.getElementById('btn-show-login');
         const elBtnLogout = document.getElementById('btn-logout');
+        const btnDeleteProj = document.getElementById('btn-delete-project');
 
         // File Icons Helper
         function getFileIcon(filename) {
@@ -535,10 +551,11 @@
                 if (window.innerWidth >= 768) {
                     elFilesColumn.classList.remove('w-0', 'opacity-0');
                     elFilesColumn.classList.add('w-64', 'opacity-100');
+                } else {
+                    elMobileOverlay.classList.remove('hidden');
+                    setTimeout(() => elMobileOverlay.classList.remove('opacity-0'), 10);
                 }
                 elBtnToggleFiles.classList.add('text-emerald-400', 'bg-slate-800/50');
-                elMobileOverlay.classList.remove('hidden');
-                setTimeout(() => elMobileOverlay.classList.remove('opacity-0'), 10);
             } else {
                 document.body.classList.remove('sidebar-open');
                 if (window.innerWidth >= 768) {
@@ -784,9 +801,12 @@
             // Start files open automatically
             if (!isFilesVisible) toggleFiles();
 
-            const btnDeleteProj = document.getElementById('btn-delete-project');
-            if (isAdmin) btnDeleteProj.classList.remove('hidden');
-            else btnDeleteProj.classList.add('hidden');
+            const containerNewFolder = document.getElementById('btn-new-folder').parentElement;
+            if (isAdmin) {
+                btnDeleteProj.parentElement.classList.remove('hidden');
+            } else {
+                btnDeleteProj.parentElement.classList.add('hidden');
+            }
 
             await loadProjects();
             await loadFiles();
@@ -820,10 +840,13 @@
         // --- File Logic ---
         async function loadFiles() {
             if (!currentProjectId) return;
-            const files = await api(`/projects/${currentProjectId}/files`);
+            const [files, folders] = await Promise.all([
+                api(`/projects/${currentProjectId}/files`),
+                api(`/projects/${currentProjectId}/folders`)
+            ]);
             elFilesList.innerHTML = '';
 
-            if (files.length === 0) {
+            if (files.length === 0 && folders.length === 0) {
                 elFilesList.innerHTML = `
                 <div class="text-[13px] text-slate-500 text-center mt-6 p-4 border border-slate-800/60 rounded-lg border-dashed">
                     No files yet.<br><span class="text-slate-600 mt-1 block">Create one to get started.</span>
@@ -831,8 +854,10 @@
                 return;
             }
 
-            // Clean up missing folders from state
+            // Collect all paths from files and folders
             const allPaths = new Set();
+
+            // Add file directory paths
             files.forEach(f => {
                 const parts = f.filename.split('/');
                 let path = '';
@@ -841,11 +866,39 @@
                     allPaths.add(path);
                 }
             });
+
+            // Add empty folder paths
+            folders.forEach(folder => {
+                allPaths.add(folder.path);
+            });
+
             Object.keys(folderState).forEach(k => { if (!allPaths.has(k)) delete folderState[k]; });
 
             // Group files by directory based on slashes in filename
             const tree = { name: 'root', path: '', files: [], dirs: {} };
 
+            // First, add empty folders to the tree
+            folders.forEach(folder => {
+                const parts = folder.path.split('/');
+                let currentLevel = tree;
+                let currentPath = '';
+
+                for (let i = 0; i < parts.length; i++) {
+                    const dirName = parts[i];
+                    currentPath += (i === 0 ? '' : '/') + dirName;
+
+                    if (!currentLevel.dirs[dirName]) {
+                        currentLevel.dirs[dirName] = { name: dirName, path: currentPath, files: [], dirs: {} };
+                        if (folderState[currentPath] === undefined) folderState[currentPath] = true;
+                    }
+                    currentLevel = currentLevel.dirs[dirName];
+                }
+                // Mark this folder as an empty folder
+                currentLevel.isEmptyFolder = true;
+                currentLevel.folderId = folder.id;
+            });
+
+            // Then add files to the tree
             files.forEach(f => {
                 const parts = f.filename.split('/');
                 let currentLevel = tree;
@@ -857,7 +910,6 @@
 
                     if (!currentLevel.dirs[dirName]) {
                         currentLevel.dirs[dirName] = { name: dirName, path: currentPath, files: [], dirs: {} };
-                        // Default folders to open if not tracked
                         if (folderState[currentPath] === undefined) folderState[currentPath] = true;
                     }
                     currentLevel = currentLevel.dirs[dirName];
@@ -883,11 +935,18 @@
                         ? `<svg class="w-3.5 h-3.5 mr-1 text-slate-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`
                         : `<svg class="w-3.5 h-3.5 mr-1 text-slate-500 transition-transform -rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
 
-                    // Contextual New File button (admins only)
-                    const actionBtn = isAdmin ? `
-                        <button class="opacity-0 group-hover:opacity-100 hover:text-emerald-400 p-1 rounded-md transition-all z-10" onclick="event.stopPropagation(); promptNewFile('${childNode.path}')" title="New file here">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        </button>
+                    // Contextual New File and Delete Folder buttons (admins only)
+                    const actionBtns = isAdmin ? `
+                        <div class="flex items-center gap-1">
+                            <button class="opacity-0 group-hover:opacity-100 hover:text-emerald-400 p-1 rounded-md transition-all z-10" onclick="event.stopPropagation(); promptNewFile('${childNode.path}')" title="New file here">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                            </button>
+                            ${childNode.isEmptyFolder ? `
+                            <button class="opacity-0 group-hover:opacity-100 hover:text-red-400 p-1 rounded-md transition-all z-10" onclick="event.stopPropagation(); deleteFolder(${childNode.folderId})" title="Delete folder">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                            ` : ''}
+                        </div>
                     ` : '';
 
                     dirDiv.innerHTML = `
@@ -896,7 +955,7 @@
                             <svg class="w-4 h-4 text-emerald-500/70 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path></svg>
                             <span class="truncate transition-colors group-hover:text-slate-200">${escapeHTML(dirName)}</span>
                         </div>
-                        ${actionBtn}
+                        ${actionBtns}
                     `;
 
                     dirDiv.onclick = () => {
@@ -951,6 +1010,8 @@
             currentFileId = id;
             elEmptyState.classList.add('hidden');
             elEditorArea.classList.remove('hidden');
+            document.getElementById('file-indicator').classList.remove('hidden');
+            document.getElementById('file-actions').classList.remove('hidden');
             elCurrentFileName.innerText = filename;
 
             // On mobile, hide the sidebars when a file is selected
@@ -1039,13 +1100,42 @@
                 await api(`/files/${currentFileId}`, 'DELETE');
                 currentFileId = null;
                 elEditorArea.classList.add('hidden');
+                document.getElementById('file-indicator').classList.add('hidden');
+                document.getElementById('file-actions').classList.add('hidden');
                 elEmptyState.classList.remove('hidden');
                 showToast("File deleted");
                 await loadFiles();
             } catch (e) { }
         }
 
-        // --- Contextual File Creation ---
+        // --- Contextual File/Folder Creation ---
+        async function promptNewFolder() {
+            const folderName = prompt("Enter new folder name (e.g. 'src' or 'images'):");
+            if (!folderName || folderName.trim() === '') return;
+
+            try {
+                await api(`/projects/${currentProjectId}/folders`, 'POST', {
+                    path: folderName.trim()
+                });
+                await loadFiles();
+                showToast("Folder created", "success");
+            } catch (e) {
+                showToast("Failed to create folder", "error");
+            }
+        }
+
+        async function deleteFolder(folderId) {
+            if (!confirm("Are you sure you want to delete this empty folder?")) return;
+
+            try {
+                await api(`/folders/${folderId}`, 'DELETE');
+                await loadFiles();
+                showToast("Folder deleted", "success");
+            } catch (e) {
+                showToast("Failed to delete folder", "error");
+            }
+        }
+
         function promptNewFile(dirPath) {
             const input = document.getElementById('input-file-name');
             input.value = dirPath + '/';
@@ -1067,6 +1157,8 @@
                 elBtnEditToggle.classList.replace('bg-indigo-500/10', 'bg-slate-700');
                 elBtnEditToggle.classList.replace('text-indigo-400', 'text-slate-300');
                 elBtnSave.classList.remove('hidden');
+                document.getElementById('btn-back-dashboard').classList.add('hidden');
+                document.getElementById('btn-toggle-files').classList.add('hidden');
                 elCodeEditor.focus();
             } else {
                 elEditMode.classList.add('hidden');
@@ -1075,6 +1167,8 @@
                 elBtnEditToggle.classList.replace('bg-slate-700', 'bg-indigo-500/10');
                 elBtnEditToggle.classList.replace('text-slate-300', 'text-indigo-400');
                 elBtnSave.classList.add('hidden');
+                document.getElementById('btn-back-dashboard').classList.remove('hidden');
+                document.getElementById('btn-toggle-files').classList.remove('hidden');
 
                 // Revert to viewer content if cancelled
                 elCodeEditor.value = elCodeViewer.textContent;
