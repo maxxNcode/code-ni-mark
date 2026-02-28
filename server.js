@@ -133,11 +133,12 @@ app.post('/api/projects', requireAuth, async (req, res) => {
 
     const { name, passcode } = req.body;
     if (!name) return res.status(400).json({ error: "Project name is required" });
+    if (!passcode) return res.status(400).json({ error: "A unique passcode is required to create a project" });
 
     try {
         const result = await client.execute({
             sql: "INSERT INTO projects (name, passcode) VALUES (?, ?)",
-            args: [name, passcode || null]
+            args: [name, passcode]
         });
         res.json({ id: Number(result.lastInsertRowid), name });
     } catch (err) {
@@ -235,8 +236,8 @@ app.delete('/api/projects/:id', requireAuth, async (req, res) => {
 
         const storedPasscode = projectResult.rows[0].passcode;
 
-        // If a passcode exists, verify it
-        if (storedPasscode && storedPasscode !== passcode) {
+        // Verify passcode before deletion
+        if (storedPasscode !== passcode) {
             return res.status(403).json({ error: "Passcode required to delete this project", requiresPasscode: true });
         }
 
