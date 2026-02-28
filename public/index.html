@@ -179,17 +179,21 @@
                     </svg>
                     Projects
                 </h2>
-                <form id="form-new-project" class="flex gap-2 hidden admin-only group">
-                    <input type="text" id="input-project-name" placeholder="New Project..."
-                        class="w-full bg-slate-900/50 text-sm px-3 py-2 rounded-md border border-slate-700/50 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 text-slate-200 placeholder-slate-600 transition-all font-medium"
-                        required>
-                    <button type="submit"
-                        class="btn-hover bg-slate-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-slate-400 aspect-square px-3 rounded-md text-sm border border-slate-700/50 hover:border-emerald-500/30 flex items-center justify-center">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
-                            </path>
-                        </svg>
-                    </button>
+                <form id="form-new-project" class="flex flex-col hidden admin-only group">
+                    <div class="flex gap-2">
+                        <input type="text" id="input-project-name" placeholder="New Project..."
+                            class="w-full bg-slate-900/50 text-sm px-3 py-2 rounded-md border border-slate-700/50 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 text-slate-200 placeholder-slate-600 transition-all font-medium"
+                            required>
+                        <button type="submit"
+                            class="btn-hover bg-slate-800 hover:bg-emerald-500/20 hover:text-emerald-400 text-slate-400 aspect-square px-3 rounded-md text-sm border border-slate-700/50 hover:border-emerald-500/30 flex items-center justify-center">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <input type="password" id="input-project-passcode" placeholder="Delete Passcode (Optional)"
+                        class="w-full bg-slate-900/50 text-xs px-3 py-1.5 rounded-md border border-slate-700/50 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 text-slate-400 placeholder-slate-600 transition-all opacity-0 h-0 group-focus-within:opacity-100 group-focus-within:h-8 group-focus-within:mt-2 overflow-hidden">
                 </form>
             </div>
             <div class="flex-1 overflow-y-auto p-3 space-y-1" id="projects-list">
@@ -664,10 +668,15 @@
 
         document.getElementById('form-new-project').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const input = document.getElementById('input-project-name');
+            const inputName = document.getElementById('input-project-name');
+            const inputPasscode = document.getElementById('input-project-passcode');
             try {
-                const newProject = await api('/projects', 'POST', { name: input.value });
-                input.value = '';
+                const newProject = await api('/projects', 'POST', {
+                    name: inputName.value,
+                    passcode: inputPasscode.value || null
+                });
+                inputName.value = '';
+                inputPasscode.value = '';
                 await loadProjects();
                 selectProject(newProject.id, newProject.name);
                 showToast("Project created");
@@ -695,16 +704,29 @@
         async function deleteCurrentProject() {
             if (!currentProjectId) return;
             if (!confirm("Are you sure you want to delete this project and ALL its files? This action cannot be undone.")) return;
-            try {
-                await api(`/projects/${currentProjectId}`, 'DELETE');
-                currentProjectId = null;
-                if (isFilesVisible) toggleFiles();
-                elBtnToggleFiles.classList.add('hidden');
-                elEditorArea.classList.add('hidden');
-                elEmptyState.classList.remove('hidden');
-                showToast("Project deleted");
-                await loadProjects();
-            } catch (e) { }
+
+            async function attemptDelete(passcode = null) {
+                try {
+                    const data = passcode ? { passcode } : {};
+                    await api(`/projects/${currentProjectId}`, 'DELETE', data);
+                    currentProjectId = null;
+                    if (isFilesVisible) toggleFiles();
+                    elBtnToggleFiles.classList.add('hidden');
+                    elEditorArea.classList.add('hidden');
+                    elEmptyState.classList.remove('hidden');
+                    showToast("Project deleted");
+                    await loadProjects();
+                } catch (e) {
+                    if (e.message && e.message.includes("Passcode required")) {
+                        const enteredPasscode = prompt("Please enter the project passcode to delete it:");
+                        if (enteredPasscode !== null) {
+                            attemptDelete(enteredPasscode);
+                        }
+                    }
+                }
+            }
+
+            attemptDelete();
         }
 
         // --- File Logic ---

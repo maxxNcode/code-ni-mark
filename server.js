@@ -83,6 +83,14 @@ async function initDatabase() {
             )
         `);
 
+        // Migration: Add passcode column if it doesn't exist
+        try {
+            await client.execute("ALTER TABLE projects ADD COLUMN passcode TEXT");
+            console.log("Added passcode column to projects table.");
+        } catch (e) {
+            // Column likely already exists
+        }
+
         console.log("Connected to the Turso SQLite database.");
     } catch (err) {
         console.error("Error initializing database: " + err.message);
@@ -123,13 +131,13 @@ app.get('/api/projects', async (req, res) => {
 app.post('/api/projects', requireAuth, async (req, res) => {
     if (!client) return res.status(503).json({ error: 'Database not configured' });
 
-    const { name } = req.body;
+    const { name, passcode } = req.body;
     if (!name) return res.status(400).json({ error: "Project name is required" });
 
     try {
         const result = await client.execute({
-            sql: "INSERT INTO projects (name) VALUES (?)",
-            args: [name]
+            sql: "INSERT INTO projects (name, passcode) VALUES (?, ?)",
+            args: [name, passcode || null]
         });
         res.json({ id: Number(result.lastInsertRowid), name });
     } catch (err) {
@@ -211,10 +219,30 @@ app.put('/api/files/:id', requireAuth, async (req, res) => {
 app.delete('/api/projects/:id', requireAuth, async (req, res) => {
     if (!client) return res.status(503).json({ error: 'Database not configured' });
 
+    const projectId = req.params.id;
+    const { passcode } = req.body; // Can be sent in body
+
     try {
+        // Check if project has a passcode
+        const projectResult = await client.execute({
+            sql: "SELECT passcode FROM projects WHERE id = ?",
+            args: [projectId]
+        });
+
+        if (projectResult.rows.length === 0) {
+            return res.status(404).json({ error: "Project not found" });
+        }
+
+        const storedPasscode = projectResult.rows[0].passcode;
+
+        // If a passcode exists, verify it
+        if (storedPasscode && storedPasscode !== passcode) {
+            return res.status(403).json({ error: "Passcode required to delete this project", requiresPasscode: true });
+        }
+
         await client.execute({
             sql: "DELETE FROM projects WHERE id = ?",
-            args: [req.params.id]
+            args: [projectId]
         });
         res.json({ message: "Project deleted" });
     } catch (err) {
