@@ -10,14 +10,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Turso Database Configuration
-const TURSO_DB_URL = process.env.TURSO_DB_URL || 'libsql://your-database.turso.io';
-const TURSO_DB_AUTH_TOKEN = process.env.TURSO_DB_AUTH_TOKEN || 'your-auth-token';
+const TURSO_DB_URL = process.env.TURSO_DB_URL;
+const TURSO_DB_AUTH_TOKEN = process.env.TURSO_DB_AUTH_TOKEN;
 
-// Create libSQL client
-const client = createClient({
-  url: TURSO_DB_URL,
-  authToken: TURSO_DB_AUTH_TOKEN
-});
+// Log for debugging (remove in production)
+console.log('TURSO_DB_URL:', TURSO_DB_URL ? 'set' : 'NOT SET');
+console.log('TURSO_DB_AUTH_TOKEN:', TURSO_DB_AUTH_TOKEN ? 'set' : 'NOT SET');
+
+// Create libSQL client - only if credentials are available
+let client = null;
+if (TURSO_DB_URL && TURSO_DB_AUTH_TOKEN) {
+  client = createClient({
+    url: TURSO_DB_URL,
+    authToken: TURSO_DB_AUTH_TOKEN
+  });
+}
 
 // Admin Authentication Setup
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD; //admin password
@@ -46,6 +53,11 @@ if (!fs.existsSync(path.join(__dirname, 'public'))) {
 
 // Initialize Database Tables
 async function initDatabase() {
+    if (!client) {
+        console.error("Database client not initialized. Please check environment variables.");
+        return;
+    }
+    
     try {
         // Create Projects Table
         await client.execute(`
@@ -90,6 +102,8 @@ app.post('/api/login', (req, res) => {
 
 // Get all projects
 app.get('/api/projects', async (req, res) => {
+    if (!client) return res.status(503).json({ error: 'Database not configured' });
+    
     try {
         const result = await client.execute("SELECT * FROM projects ORDER BY id DESC");
         res.json(result.rows);
@@ -100,6 +114,8 @@ app.get('/api/projects', async (req, res) => {
 
 // Create a new project
 app.post('/api/projects', requireAuth, async (req, res) => {
+    if (!client) return res.status(503).json({ error: 'Database not configured' });
+    
     const { name } = req.body;
     if (!name) return res.status(400).json({ error: "Project name is required" });
     
@@ -116,6 +132,8 @@ app.post('/api/projects', requireAuth, async (req, res) => {
 
 // Get files for a specific project
 app.get('/api/projects/:id/files', async (req, res) => {
+    if (!client) return res.status(503).json({ error: 'Database not configured' });
+    
     try {
         const result = await client.execute({
             sql: "SELECT id, filename FROM files WHERE project_id = ? ORDER BY id ASC",
@@ -129,6 +147,8 @@ app.get('/api/projects/:id/files', async (req, res) => {
 
 // Get a specific file's content
 app.get('/api/files/:id', async (req, res) => {
+    if (!client) return res.status(503).json({ error: 'Database not configured' });
+    
     try {
         const result = await client.execute({
             sql: "SELECT * FROM files WHERE id = ?",
@@ -145,6 +165,8 @@ app.get('/api/files/:id', async (req, res) => {
 
 // Create a new file in a project
 app.post('/api/projects/:id/files', requireAuth, async (req, res) => {
+    if (!client) return res.status(503).json({ error: 'Database not configured' });
+    
     const { filename, content } = req.body;
     const projectId = req.params.id;
     
@@ -163,6 +185,8 @@ app.post('/api/projects/:id/files', requireAuth, async (req, res) => {
 
 // Update a file
 app.put('/api/files/:id', requireAuth, async (req, res) => {
+    if (!client) return res.status(503).json({ error: 'Database not configured' });
+    
     const { content } = req.body;
     
     try {
@@ -178,6 +202,8 @@ app.put('/api/files/:id', requireAuth, async (req, res) => {
 
 // Delete a project
 app.delete('/api/projects/:id', requireAuth, async (req, res) => {
+    if (!client) return res.status(503).json({ error: 'Database not configured' });
+    
     try {
         await client.execute({
             sql: "DELETE FROM projects WHERE id = ?",
@@ -191,6 +217,8 @@ app.delete('/api/projects/:id', requireAuth, async (req, res) => {
 
 // Delete a file
 app.delete('/api/files/:id', requireAuth, async (req, res) => {
+    if (!client) return res.status(503).json({ error: 'Database not configured' });
+    
     try {
         await client.execute({
             sql: "DELETE FROM files WHERE id = ?",
