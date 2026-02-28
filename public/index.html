@@ -474,12 +474,12 @@
         function toggleProjects() {
             isProjectsVisible = !isProjectsVisible;
             if (isProjectsVisible) {
-                elProjectsColumn.classList.remove('w-0', 'opacity-0');
-                elProjectsColumn.classList.add('w-64', 'opacity-100');
+                elProjectsColumn.classList.remove('w-0', 'md:w-0', 'opacity-0');
+                elProjectsColumn.classList.add('w-64', 'md:w-64', 'opacity-100');
                 elBtnToggleProjects.classList.add('text-emerald-400', 'bg-slate-800');
             } else {
-                elProjectsColumn.classList.add('w-0', 'opacity-0');
-                elProjectsColumn.classList.remove('w-64', 'opacity-100');
+                elProjectsColumn.classList.add('w-0', 'md:w-0', 'opacity-0');
+                elProjectsColumn.classList.remove('w-64', 'md:w-64', 'opacity-100');
                 elBtnToggleProjects.classList.remove('text-emerald-400', 'bg-slate-800');
             }
             updateMobileOverlay();
