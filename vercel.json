@@ -15,10 +15,5 @@
       "src": "/(.*)",
       "dest": "/server.js"
     }
-  ],
-  "env": {
-    "TURSO_DB_URL": "@turso_db_url",
-    "TURSO_DB_AUTH_TOKEN": "@turso_db_auth_token",
-    "ADMIN_PASSWORD": "@admin_password"
-  }
+  ]
 }
